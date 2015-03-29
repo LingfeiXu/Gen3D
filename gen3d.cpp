@@ -23,8 +23,8 @@ ofstream mylog;             //log file used to record the scores of models
 double dt = 7.0;            //the contact distance threshold
 double mymaxd = 20.25;       //the non-contact distance threshold
 
-const int CON = 65;         //con satisfaction threshold
-const int NON = 65;			//non-con satisfaction threshold
+const int CON = 55;         //con satisfaction threshold
+const int NON = 55;			//non-con satisfaction threshold
 
 double maxcon = 0.0;		//record the max contact score
 double maxnon = 0.0;		//record the max non-contact score
@@ -344,14 +344,14 @@ void randCord()
 //	srand ( time(NULL) );
 	for( int j=0;j<3;j++ ){
 
-		R[0][j] = ((double)rand() - RAND_MAX)*2/RAND_MAX;
+		R[0][j] = ((double)rand() - RAND_MAX/2)*2/RAND_MAX;
 
 	}
 
 
 	for( int i=0;i<Nt;i++ ){
 		for( int j=0;j<3;j++ ){
-			rr[i][j] = (double)rand()/RAND_MAX;
+			rr[i][j] = ((double)rand() - RAND_MAX/2)*2/RAND_MAX;
 		}
 		len = distance(rr[i][0],rr[i][1],rr[i][2],0,0,0);
 		sum += len;
@@ -1142,7 +1142,7 @@ int main( int argc, char *argv[] )
 
 	printContactMatrix();
 
-	if(i==1||i==2||i==3)	//base on choromsome length > or < 200? to choose the intialization method, chromosome 1,2,3's length is longer than 200
+	if(i==1||i==2||i==3||14)	//base on choromsome length > or < 200? to choose the intialization method, chromosome 1,2,3's length is longer than 200
 		growth();
 	else
 		initSphereConform();
