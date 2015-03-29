@@ -583,14 +583,14 @@ void calcScore(int s)
 					maxc=dist;
 			}
 
-			//mymaxd is global variable, initially set to 10
+			//mymaxd is global variable, initially set to 20.25
 			if(dist<=mymaxd)
 				maxx++;
 
 			//if contact
 			if(S[i][j]){
 				contactCount++;
-				if(dist<dt){               //distance threshold dt is used and is a global variable, initially set to 5
+				if(dist<dt){               //distance threshold dt is used and is a global variable, initially set to 7
 					count++;
 					c=1;
 					T[i][j] = 1;
@@ -606,7 +606,7 @@ void calcScore(int s)
 			if(!S[i][j]){
 				noncontactCount++;
 				nonsum+=dist;
-				if(dist>dt){                //distance threshold dt is used and is a global variable, initially set to 5
+				if(dist>dt){                //distance threshold dt is used and is a global variable, initially set to 7
 					noncount++;
 					c=0;
 					T[i][j] = 3;
