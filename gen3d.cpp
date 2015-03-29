@@ -774,18 +774,9 @@ void growth()
 		}
 		else
 		{
-			randJ = rand()%10;
-			if(maxP*10 > randJ)
-			{
-				R[i+1][0] = temp[maxJ][0];
-				R[i+1][1] = temp[maxJ][1];
-				R[i+1][2] = temp[maxJ][2];
-			}
-			else
-			{
-				continue;
-			}
-
+			R[i+1][0] = temp[maxJ][0];
+			R[i+1][1] = temp[maxJ][1];
+			R[i+1][2] = temp[maxJ][2];
 		}
 	}
 	cout<<"growth finished\n";
@@ -1150,7 +1141,7 @@ int main( int argc, char *argv[] )
 
 	printContactMatrix();
 
-	if(i==1||i==2||i==3)	//base on choromsome length > or < 200? to choose the intialization method, chromosome 1,2,3's length is longer than 200
+	if(i==1||i==2||i==3)			//base on choromsome length > or < 200? to choose the intialization method, chromosome 1,2,3's length is longer than 200
 		growth();
 	else
 		initSphereConform();
