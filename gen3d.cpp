@@ -23,8 +23,8 @@ ofstream mylog;             //log file used to record the scores of models
 double dt = 7.0;            //the contact distance threshold
 double mymaxd = 20.25;       //the non-contact distance threshold
 
-const int CON = 55;         //con satisfaction threshold
-const int NON = 55;			//non-con satisfaction threshold
+const int CON = 75;         //con satisfaction threshold
+const int NON = 75;			//non-con satisfaction threshold
 
 double maxcon = 0.0;		//record the max contact score
 double maxnon = 0.0;		//record the max non-contact score
@@ -423,8 +423,6 @@ int calculateCostFunction(int i, int j)
 }
 
 
-
-
 /*
 	function to calculate acceptance probability for simulated annealing in growth step
 
@@ -457,7 +455,6 @@ double calculateProbability(int i, int j)
 
 
 
-
 /*
 	function to translate coordinate of the rest of structure accordingly after a unit change its coordinates
 	
@@ -478,52 +475,6 @@ void translateCoordinate( int i, int l )
 }
 
 
-
-/*
-	function to calculate the score of model for adaptation step
-
-	parameters int I and return int
-
-	called in adaptation with parameters i+1 return value scoreJ
-*/
-int calcuAdaptatinScore( int I )
-{
-	double dist;
-
-	int score[Nt]={0};
-	int max,maxj;
-	max=maxj=0;
-
-	for( int i=0; i<n; i++ )
-	{
-		if(i==I)		//diagonal
-			continue;
-		for( int j=0; j<Nt; j++ )
-		{
-			dist = distance(R[i][0],R[i][1],R[i][2],temp[j][0],temp[j][1],temp[j][2]);
-			if(dist<dt && S[i][I])				//reward contact satisfied
-					score[j]++;
-			else if(dist>dt && !S[i][I])
-				if(dist<mymaxd)					//max distance threshold is implemented to make sure the distance is valid
-					score[j]++;					//reward non-contact satisfied
-			else
-				score[j]--;						//penalized unsatisfied contact and non-contact
-
-		}
-	}
-	for( int j=0; j<Nt; j++ )
-	{
-		if(score[j]>max)
-		{
-			max = score[j];
-			maxj = j;
-		}
-	}
-	if(max==0)
-		return -1;
-	else
-		return maxj;
-}
 
 
 
@@ -666,6 +617,90 @@ void calcScore(int s)
 
 
 
+int calculateCostFunctionSA(int i)
+{
+	int sum = 0;
+	double rik;
+	for( int k = 1; k <= i-1; k++ )
+	{
+		rik = distance(temp[0][0],temp[0][1],temp[0][2],R[k][0],R[k][1],R[k][2]);		//because temp[] contains rij
+		sum += aG(S[i][k]) * heaviside(dt-rik);		//ag(S[i][k]) * v(dt-r[i][k]);
+	}
+	return sum;
+}
+
+int calculateCostFunctionSAOrigin(int i)
+{
+	int sum = 0;
+	double rik;
+	for( int k = 1; k <= i-1; k++ )
+	{
+		rik = distance(R[i][0],R[i][1],R[i][2],R[k][0],R[k][1],R[k][2]);		//because temp[] contains rij
+		sum += aG(S[i][k]) * heaviside(dt-rik);		//ag(S[i][k]) * v(dt-r[i][k]);
+	}
+	return sum;
+}
+
+int aSACON(int a)
+{
+	return (a==0)?1:0;
+}
+
+int heavisideSACON(double n)
+{
+	return (n<0)?0:1;
+}
+
+int aSANON(int a)
+{
+	return (a==0)?0:1;
+}
+
+int heavisideSANON(double n)
+{
+	return (n<0)?1:0;
+}
+
+
+double temperatureSA(int i)
+{
+	int sum = 0;
+	double rik;
+	double an = 0;
+	for( int k = 1; k <= i-1; k++ )
+	{
+		rik = distance(R[i][0],R[i][1],R[i][2],R[k][0],R[k][1],R[k][2]);		//because temp[] contains rij
+		sum += aSACON(S[i][k]) * heavisideSACON(dt-rik) + aSANON(S[i][k]) * heavisideSANON(dt-rik);								//ag(S[i][k]) * v(dt-r[i][k]);
+	}
+
+	an = 2/(1 + exp(-sum)) - 1;
+//	an = 2/(1 + exp(-sum*ag)) - 1;
+//	ta = taf + (tai - taf)*an;
+	return an;
+}
+
+double calculateProbabilitySA(int i)
+{
+	int Ea = 0, Eb = 0, deltaE = 0;
+	double e = 0;
+	Ea = calculateCostFunctionSA(i);			//Ea(i)
+	Eb = calculateCostFunctionSAOrigin(i);		//Eb(i) for orgin structure
+	if(Ea - Eb > 0)
+		return -1;
+	if(Ea == Eb)
+		return -2;
+	deltaE = Eb - Ea;
+
+	if(temperatureSA(i)==0)
+		return -2;
+
+	e = -deltaE/temperatureSA(i);
+	e = exp(e);				//cout << "e=" << e << endl;
+	cout << "pro =" <<e<< endl;
+	return e*100;
+}
+
+
 /*
 	function to perform adaptation
 	
@@ -694,43 +729,39 @@ void adaptation(int a=-1)
 		else
 			i = a;
 
-		if(flag)						//reverse the flag for each round
+		if(rand()%1==1)						//random the addition or subtracting
 			flag--;
 		else
 			flag=addsub;
 
 		randCord();
 
-		for(int j=0;j<Nt;j++)
+		if(flag)
 		{
-			if(flag)
-			{
 //				cout <<"addition\n";
-				temp[j][0] = R[i][0] + rr[j][0];
-				temp[j][1] = R[i][1] + rr[j][1];
-				temp[j][2] = R[i][2] + rr[j][2];
-			}
-			else
-			{
-//				cout <<"subtraction\n";
-				temp[j][0] = R[i][0] - rr[j][0];
-				temp[j][1] = R[i][1] - rr[j][1];
-				temp[j][2] = R[i][2] - rr[j][2];
-			}
-
-		}
-
-		scoreJ = calcuAdaptatinScore(i+1);
-		if(scoreJ==-1)
-		{
-			continue;
+			temp[0][0] = R[i][0] + rr[0][0];
+			temp[0][1] = R[i][1] + rr[0][1];
+			temp[0][2] = R[i][2] + rr[0][2];
 		}
 		else
+		{
+//				cout <<"subtraction\n";
+			temp[0][0] = R[i][0] - rr[0][0];
+			temp[0][1] = R[i][1] - rr[0][1];
+			temp[0][2] = R[i][2] - rr[0][2];
+		}
+
+		scoreJ = calculateProbabilitySA(i);
+		if(scoreJ==-1||rand()%100<scoreJ)
 		{
 			translateCoordinate(i,scoreJ);
 			R[i+1][0] = temp[scoreJ][0];
 			R[i+1][1] = temp[scoreJ][1];
 			R[i+1][2] = temp[scoreJ][2];
+		}
+		else if(scoreJ==-2)
+		{
+			continue;
 		}
 
 		calcScore(s);
@@ -765,14 +796,14 @@ void growth()
 				maxJ = j;
 			}
 		}
-		if(isProbSame())         //if all the p are same
+		if(isProbSame())     		    //if all the p are same
 		{
 			randJ = rand()%Nt;
 			R[i+1][0] = temp[randJ][0];
 			R[i+1][1] = temp[randJ][1];
 			R[i+1][2] = temp[randJ][2];
 		}
-		else
+		else							//the one with the max probability is chosen
 		{
 			R[i+1][0] = temp[maxJ][0];
 			R[i+1][1] = temp[maxJ][1];
@@ -1141,7 +1172,7 @@ int main( int argc, char *argv[] )
 
 	printContactMatrix();
 
-	if(i==1||i==2||i==3)			//base on choromsome length > or < 200? to choose the intialization method, chromosome 1,2,3's length is longer than 200
+	if(i==1||i==2||i==3)	//base on choromsome length > or < 200? to choose the intialization method, chromosome 1,2,3's length is longer than 200
 		growth();
 	else
 		initSphereConform();
