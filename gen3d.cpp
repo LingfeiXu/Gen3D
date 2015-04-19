@@ -23,8 +23,8 @@ ofstream mylog;             //log file used to record the scores of models
 double dt = 7.0;            //the contact distance threshold
 double mymaxd = 20.25;       //the non-contact distance threshold
 
-const int CON = 75;         //con satisfaction threshold
-const int NON = 75;			//non-con satisfaction threshold
+const int CON = 55;         //con satisfaction threshold
+const int NON = 55;			//non-con satisfaction threshold
 
 double maxcon = 0.0;		//record the max contact score
 double maxnon = 0.0;		//record the max non-contact score
@@ -46,7 +46,7 @@ double rr[Nt][3];           //used in changeDirection, randCord, genetic, growth
 double P[Nt];               //used in growth, isProbSame
 double temp[Nt][3];         //used in growth, calculateCostFunction, adaptation
 
-char* filename = "10";		//normal chromosome 10 is given as input as default
+char* filename;
 int oz=11;					//given as a default value for oz
 
 int unitBase = 1000000;	    //the base unit in our method have the size of 1MB
@@ -583,8 +583,10 @@ void calcScore(int s)
 	double unconavg = uncon/(contactCount-count);
 	double unnonavg = unnoncon/(noncontactCount-noncount);
 
-	if(maxcon<=percent1 || maxnon<=percent2){
+	if(maxcon<=percent1) {
 		maxcon=percent1;
+	}
+	if(maxnon<=percent2){
 		maxnon=percent2;
 	}
 
@@ -621,7 +623,7 @@ int calculateCostFunctionSA(int i)
 {
 	int sum = 0;
 	double rik;
-	for( int k = 1; k <= i-1; k++ )
+	for( int k = 1; k < n; k++ )
 	{
 		rik = distance(temp[0][0],temp[0][1],temp[0][2],R[k][0],R[k][1],R[k][2]);		//because temp[] contains rij
 		sum += aG(S[i][k]) * heaviside(dt-rik);		//ag(S[i][k]) * v(dt-r[i][k]);
@@ -633,7 +635,7 @@ int calculateCostFunctionSAOrigin(int i)
 {
 	int sum = 0;
 	double rik;
-	for( int k = 1; k <= i-1; k++ )
+	for( int k = 1; k < n; k++ )
 	{
 		rik = distance(R[i][0],R[i][1],R[i][2],R[k][0],R[k][1],R[k][2]);		//because temp[] contains rij
 		sum += aG(S[i][k]) * heaviside(dt-rik);		//ag(S[i][k]) * v(dt-r[i][k]);
@@ -664,18 +666,20 @@ int heavisideSANON(double n)
 
 double temperatureSA(int i)
 {
-	int sum = 0;
+	double sum = 0;
 	double rik;
 	double an = 0;
-	for( int k = 1; k <= i-1; k++ )
+	for( int k = 1; k < n; k++ )
 	{
 		rik = distance(R[i][0],R[i][1],R[i][2],R[k][0],R[k][1],R[k][2]);		//because temp[] contains rij
 		sum += aSACON(S[i][k]) * heavisideSACON(dt-rik) + aSANON(S[i][k]) * heavisideSANON(dt-rik);								//ag(S[i][k]) * v(dt-r[i][k]);
 	}
 
-	an = 2/(1 + exp(-sum)) - 1;
+	an = 2/(1 + exp(-sum/200)) - 1;
 //	an = 2/(1 + exp(-sum*ag)) - 1;
 //	ta = taf + (tai - taf)*an;
+//	cout << "sum = " <<sum/200<< endl;
+//	cout << "an = " <<an<< endl;
 	return an;
 }
 
@@ -684,20 +688,19 @@ double calculateProbabilitySA(int i)
 	int Ea = 0, Eb = 0, deltaE = 0;
 	double e = 0;
 	Ea = calculateCostFunctionSA(i);			//Ea(i)
+//	cout << "Ea =" <<Ea<< endl;
 	Eb = calculateCostFunctionSAOrigin(i);		//Eb(i) for orgin structure
-	if(Ea - Eb > 0)
+//	cout << "Eb =" <<Eb<< endl;
+	if(Ea - Eb <= 0)
 		return -1;
-	if(Ea == Eb)
-		return -2;
-	deltaE = Eb - Ea;
-
+	deltaE = Ea - Eb;
 	if(temperatureSA(i)==0)
-		return -2;
-
+		return -1;
+//	cout << "delta =" <<deltaE<< endl;	
 	e = -deltaE/temperatureSA(i);
-	e = exp(e);				//cout << "e=" << e << endl;
-	cout << "pro =" <<e<< endl;
-	return e*100;
+	e = exp(e);				//cout << "e=" << e*100 << endl;
+//	cout << "e =" <<e<< endl;
+	return e*10000;
 }
 
 
@@ -1190,14 +1193,17 @@ int main( int argc, char *argv[] )
 /*
 	inPDB(argv[2]);		//used for rebustness test, the third paramater can be a pdb file which you can used it as initial structure to generate models,
 						//in this case, the growth or Sphere is not needed since already have the pdb as initial structure,
-*/
+*/	
+
 	calcScore(-1);
+	
+//	cout<<"maxcon="<<maxcon<<",maxnon="<<maxnon<<endl;
 
 	adaptation();		//adaptation step, which can be command out when using genetic algorithm
 	
 	calcScore(-2);
 
-	cout<<"maxcon="<<maxcon<<",maxnon="<<maxnon<<endl;
+//	cout<<"maxcon="<<maxcon<<",maxnon="<<maxnon<<endl;
 
 	memdel();                     //delete matrices and their data
 	mylog.close();                //close log
