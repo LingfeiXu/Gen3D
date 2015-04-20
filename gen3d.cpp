@@ -23,8 +23,8 @@ ofstream mylog;             //log file used to record the scores of models
 double dt = 7.0;            //the contact distance threshold
 double mymaxd = 20.25;       //the non-contact distance threshold
 
-const int CON = 55;         //con satisfaction threshold
-const int NON = 55;			//non-con satisfaction threshold
+const int CON = 40;         //con satisfaction threshold
+const int NON = 40;			//non-con satisfaction threshold
 
 double maxcon = 0.0;		//record the max contact score
 double maxnon = 0.0;		//record the max non-contact score
@@ -34,7 +34,7 @@ int addsub = 1;
 int flag = addsub;          //used in adaptation
 int avgIF = 0;
 
-int step = 50000;           //the step number of adapation
+int step = 10;           //the step number of adapation
 int s = 0;
 double Tg = 10.0;		    //temperature for simulated anneanling
 
@@ -494,7 +494,7 @@ void translateCoordinate( int i, int l )
 void calcScore(int s)
 {
 	int adapt=0;
-	double dist;                  //gets value from distance
+	double dist;                  //gets  value from distance
 	char f[20];                   //used to store info, sent to outpdb
 	int count,noncount,contactCount,noncontactCount,non,maxx, tot;
 	count=noncount=contactCount=noncontactCount=non=maxx=tot=0;
@@ -950,7 +950,7 @@ void inPDB( char* pdbfile )
 				R[i][1] = atof(strtok( NULL, " " ));
 				R[i][2] = atof(strtok( NULL, " " ));
 
-				cout << R[i][0] << " " << R[i][1] << " " << R[i][2] << endl;
+//				cout << R[i][0] << " " << R[i][1] << " " << R[i][2] << endl;
 				++i;
 			}
 			result = strtok( NULL, " " );
@@ -1044,26 +1044,24 @@ int main( int argc, char *argv[] )
 {
 	// type ofstream
 	// precision used to set decimal places of double
-
+/*
 	if( argc != 2 )
 	{
 		cout<<"usage: "<<argv[0]<<" <interaction_file>"<<endl;
 		return 1;
 	}
 
+*/
 
-/*
 	if( argc != 3 )				//used for rebustness test, the third paramater can be a pdb file which you can used it as initial structure to generate models
 	{
 		cout<<"usage: "<<argv[0]<<" <interaction_file> <pdb_file>"<<endl;
 		return 1;
 	}
-*/
+
 	mylog.open( "score.log" );
 	mylog.precision(3);
 
-
-	cout << "hello world"<< endl;
 	srand ( time(NULL) );
 
 	// value later assigned, depends on value of i
@@ -1174,11 +1172,13 @@ int main( int argc, char *argv[] )
 	}
 
 	printContactMatrix();
-
+	
+/*
 	if(i==1||i==2||i==3)	//base on choromsome length > or < 200? to choose the intialization method, chromosome 1,2,3's length is longer than 200
 		growth();
 	else
 		initSphereConform();
+*/
 
 /*
 	inPDB("14F_65_72_85_80_24075.pdb");			//input you strcture for genetic algorithm for genetic parents
@@ -1190,10 +1190,9 @@ int main( int argc, char *argv[] )
 	genetic();
 */
 
-/*
+
 	inPDB(argv[2]);		//used for rebustness test, the third paramater can be a pdb file which you can used it as initial structure to generate models,
 						//in this case, the growth or Sphere is not needed since already have the pdb as initial structure,
-*/	
 
 	calcScore(-1);
 	
