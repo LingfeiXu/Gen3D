@@ -34,7 +34,7 @@ int addsub = 1;
 int flag = addsub;          //used in adaptation
 int avgIF = 0;
 
-int step = 10;           //the step number of adapation
+int step = 50000;           //the step number of adapation
 int s = 0;
 double Tg = 10.0;		    //temperature for simulated anneanling
 
