@@ -1044,20 +1044,21 @@ int main( int argc, char *argv[] )
 {
 	// type ofstream
 	// precision used to set decimal places of double
-/*
+
 	if( argc != 2 )
 	{
 		cout<<"usage: "<<argv[0]<<" <interaction_file>"<<endl;
 		return 1;
 	}
 
-*/
 
+/*
 	if( argc != 3 )				//used for rebustness test, the third paramater can be a pdb file which you can used it as initial structure to generate models
 	{
 		cout<<"usage: "<<argv[0]<<" <interaction_file> <pdb_file>"<<endl;
 		return 1;
 	}
+*/
 
 	mylog.open( "score.log" );
 	mylog.precision(3);
@@ -1173,12 +1174,12 @@ int main( int argc, char *argv[] )
 
 	printContactMatrix();
 	
-/*
+
 	if(i==1||i==2||i==3)	//base on choromsome length > or < 200? to choose the intialization method, chromosome 1,2,3's length is longer than 200
 		growth();
 	else
 		initSphereConform();
-*/
+
 
 /*
 	inPDB("14F_65_72_85_80_24075.pdb");			//input you strcture for genetic algorithm for genetic parents
@@ -1190,10 +1191,10 @@ int main( int argc, char *argv[] )
 	genetic();
 */
 
-
+/*
 	inPDB(argv[2]);		//used for rebustness test, the third paramater can be a pdb file which you can used it as initial structure to generate models,
 						//in this case, the growth or Sphere is not needed since already have the pdb as initial structure,
-
+*/
 	calcScore(-1);
 	
 //	cout<<"maxcon="<<maxcon<<",maxnon="<<maxnon<<endl;
